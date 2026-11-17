@@ -46,6 +46,11 @@ export class MessageRepository {
 		return this.dataRepo.listMessages(channelId, beforeMessageId, limit, afterMessageId);
 	}
 
+	/** Fluxcord: see MessageDataRepository.lowerCreatedBucket. */
+	async lowerCreatedBucket(channelId: ChannelID, bucket: number): Promise<void> {
+		return this.dataRepo.lowerCreatedBucket(channelId, bucket);
+	}
+
 	async getMessage(channelId: ChannelID, messageId: MessageID): Promise<Message | null> {
 		return this.dataRepo.getMessage(channelId, messageId);
 	}

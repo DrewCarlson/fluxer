@@ -19,6 +19,7 @@ import {InstanceConfigAdminController} from '@app/api/admin/controllers/Instance
 import {JobsAdminController} from '@app/api/admin/controllers/JobsAdminController';
 import {LimitConfigAdminController} from '@app/api/admin/controllers/LimitConfigAdminController';
 import {MessageAdminController} from '@app/api/admin/controllers/MessageAdminController';
+import {MessageImportAdminController} from '@app/api/admin/controllers/MessageImportAdminController';
 import {OperatorPassAdminController} from '@app/api/admin/controllers/OperatorPassAdminController';
 import {PaymentDisputeAdminController} from '@app/api/admin/controllers/PaymentDisputeAdminController';
 import {ReportAdminController} from '@app/api/admin/controllers/ReportAdminController';
@@ -49,6 +50,7 @@ export function registerAdminControllers(app: HonoApp) {
 	BanAdminController(app);
 	InstanceConfigAdminController(app);
 	LimitConfigAdminController(app);
+	MessageImportAdminController(app);
 	MessageAdminController(app);
 	BulkAdminController(app);
 	AuditLogAdminController(app);

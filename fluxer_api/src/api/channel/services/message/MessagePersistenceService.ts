@@ -148,6 +148,8 @@ interface CreateMessageParams {
 	processedStickerItems?: Array<MessageStickerItem>;
 	skipDeferredEmbeds?: boolean;
 	threadInsert?: boolean;
+	/** Fluxcord: an imported old message must not move its author's read state. */
+	skipAuthorAck?: boolean;
 }
 
 export class MessagePersistenceService {
@@ -547,7 +549,7 @@ export class MessagePersistenceService {
 					{content: message.content},
 				);
 		}
-		if (authorId) {
+		if (authorId && !params.skipAuthorAck) {
 			const isBot = params.user?.isBot ?? false;
 			if (!isBot) {
 				operations.push(

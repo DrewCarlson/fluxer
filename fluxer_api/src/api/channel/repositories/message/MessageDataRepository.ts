@@ -543,8 +543,10 @@ export class MessageDataRepository {
 		messageId: MessageID,
 		messageBucket: number,
 	): Promise<void> {
+		// Fluxcord: created_bucket is the lowest bucket that history listing scans. It is set when the
+		// state row is made and is never raised again, so an imported older message stays listed.
+		const createdBucket = Math.min(BucketUtils.makeBucket(channelId), messageBucket);
 		const always = {
-			created_bucket: BucketUtils.makeBucket(channelId),
 			has_messages: true,
 			updated_at: new Date(),
 		};
@@ -556,13 +558,13 @@ export class MessageDataRepository {
 				guard: {col: 'last_message_id', value: messageId},
 				set,
 				always,
-				insert: {channel_id: channelId, ...always, ...set},
+				insert: {channel_id: channelId, created_bucket: createdBucket, ...always, ...set},
 			},
 			async () => {
 				const state = await this.getChannelState(channelId);
 				const prev = state?.last_message_id ?? null;
 				const patch = {
-					created_bucket: Db.set(always.created_bucket),
+					created_bucket: Db.set(Math.min(state?.created_bucket ?? createdBucket, createdBucket)),
 					has_messages: Db.set(always.has_messages),
 					updated_at: Db.set(always.updated_at),
 				};
@@ -576,6 +578,21 @@ export class MessageDataRepository {
 				);
 				return true;
 			},
+		);
+	}
+
+	/**
+	 * Fluxcord: lowers the first bucket that history listing scans, so that messages imported with
+	 * their original (older) ids are listed. It never raises it.
+	 */
+	async lowerCreatedBucket(channelId: ChannelID, bucket: number): Promise<void> {
+		const state = await this.getChannelState(channelId);
+		if (state && state.created_bucket <= bucket) return;
+		await upsertOne(
+			ChannelState.patchByPk(
+				{channel_id: channelId},
+				{created_bucket: Db.set(bucket), has_messages: Db.set(true), updated_at: Db.set(new Date())},
+			),
 		);
 	}
 
