@@ -478,6 +478,15 @@ function welcomeLabsState(member: boolean, visionary: boolean): 'visionary' | 'm
 	return visionary ? 'visionary' : 'member';
 }
 
+/**
+ * Fluxcord patch: the .invalid top-level domain is reserved (RFC 2606) and never receives mail.
+ * Bridge accounts use addresses under it, so mail to them is dropped instead of bouncing.
+ */
+export function isReservedUndeliverable(email: string): boolean {
+	const domain = email.trim().toLowerCase().split('@').pop() ?? '';
+	return domain === 'invalid' || domain.endsWith('.invalid');
+}
+
 export class EmailService implements IEmailService {
 	private readonly config: EmailConfig;
 	private readonly provider: IEmailProvider | null;
@@ -1603,6 +1612,10 @@ export class EmailService implements IEmailService {
 	}
 
 	private async sendPlainEmail(email: string, subject: string, text: string): Promise<boolean> {
+		if (isReservedUndeliverable(email)) {
+			logger.debug({email}, 'Not sending email to a reserved .invalid address');
+			return true;
+		}
 		if (!this.config.enabled || !this.provider) {
 			logger.info(`Email service disabled. Would have sent:\nTo: ${email}\nSubject: ${subject}\n\n${text}`);
 			return true;
@@ -1708,6 +1721,10 @@ export class EmailService implements IEmailService {
 				},
 				`Email service disabled. Would have sent:\nTo: ${email}\nSubject: ${subject}\n\n${text}`,
 			);
+			return true;
+		}
+		if (isReservedUndeliverable(email)) {
+			logger.debug({email, templateKey}, 'Not sending email to a reserved .invalid address');
 			return true;
 		}
 		if (this.bouncedEmailChecker) {

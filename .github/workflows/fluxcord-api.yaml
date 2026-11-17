@@ -35,6 +35,9 @@ jobs:
       - name: Test
         working-directory: fluxer_api
         run: npx vitest run src/api/channel/repositories/message/
+      - name: Test email
+        working-directory: fluxer_api/pkgs/email
+        run: npx vitest run src/EmailService
 
   image:
     name: image (${{ matrix.platform }})

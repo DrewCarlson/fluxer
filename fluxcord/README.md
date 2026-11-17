@@ -1,9 +1,14 @@
 # Fluxer with the Fluxcord patch
 
-This branch is upstream Fluxer with one small patch for
-[Fluxcord](https://github.com/DrewCarlson/Fluxcord), a Discord bridge. The patch lets an admin API
-key import messages with their original time, so that a bridge can copy older history into a
-channel. Only the `fluxer-api` image changes. Use the upstream images for all other services.
+This branch is upstream Fluxer with two small patches for
+[Fluxcord](https://github.com/DrewCarlson/Fluxcord), a Discord bridge:
+
+- An admin API key can import messages with their original time, so that a bridge can copy older
+  history into a channel.
+- Fluxer sends no email to addresses under the reserved `.invalid` domain (RFC 2606). The
+  accounts that the bridge makes use such addresses, so mail to them no longer bounces.
+
+Only the `fluxer-api` image changes. Use the upstream images for all other services.
 
 ## What the patch changes
 
@@ -15,6 +20,8 @@ channel. Only the `fluxer-api` image changes. Use the upstream images for all ot
 | `fluxer_api/src/api/channel/repositories/message/MessageDataRepository.ts` | `channel_state.created_bucket` is set when the row is made and is never raised again. `lowerCreatedBucket` lowers it for imported messages. |
 | `fluxer_api/src/api/channel/repositories/MessageRepository.ts` | `lowerCreatedBucket`. |
 | `fluxer_api/src/api/channel/repositories/message/MessageImport.fluxcord.test.ts` | Tests. |
+| `fluxer_api/pkgs/email/src/EmailService.ts` | `isReservedUndeliverable`: no email to `.invalid` addresses, on both send paths. |
+| `fluxer_api/pkgs/email/src/EmailService.fluxcord.test.ts` | Tests. |
 | `.github/workflows/fluxcord-api.yaml`, `fluxcord/` | The build of this image, and this file. |
 
 Without the patch, every new message sets `created_bucket` to the bucket of the channel. The
